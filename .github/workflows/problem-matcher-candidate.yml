@@ -4,10 +4,33 @@ name: Python problem matcher candidate
 # the candidate problem matcher.
 on:
   workflow_dispatch:
+    inputs:
+      python-version:
+        description: Python version
+        required: true
+        type: choice
+        options:
+          - "3.10"
+          - "3.14"
 
 jobs:
+  validate-matcher:
+    name: Validate matcher
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out matcher source
+        uses: actions/checkout@v6
+        with:
+          repository: chiranjib-swain/setup-python
+          ref: 6f05d76b2ee0dad4076c70077171b67fc0bfeeaa
+
+      - name: Validate JSON
+        run: |
+          node -e "const matcher = JSON.parse(require('fs').readFileSync('.github/python.json', 'utf8')); if (matcher.problemMatcher.length !== 2) process.exit(1)"
+          git diff --check HEAD^
+
   problem-matcher:
-    name: ${{ matrix.testcase }}
+    name: Python ${{ inputs.python-version }} - ${{ matrix.testcase }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -26,16 +49,48 @@ jobs:
           - assertion_error
           - custom_exception
           - syntax_error
+          - nested_error
+          - qualified_error
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@82009b3bde52ba09eae338d59adb1c06ac50c997
+        uses: chiranjib-swain/setup-python@6f05d76b2ee0dad4076c70077171b67fc0bfeeaa
         with:
-          python-version: "3.10"
+          python-version: ${{ inputs.python-version }}
 
       # Each failure is expected; inspect its annotation to test the matcher.
       - name: Run ${{ matrix.testcase }}
         run: python tests/${{ matrix.testcase }}.py
+
+  legacy-output:
+    name: Python 3.10-style output
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: chiranjib-swain/setup-python@6f05d76b2ee0dad4076c70077171b67fc0bfeeaa
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Emit legacy traceback
+        run: python tests/legacy_traceback.py
+
+  false-positive:
+    name: Traceback-shaped log output
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: chiranjib-swain/setup-python@6f05d76b2ee0dad4076c70077171b67fc0bfeeaa
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Emit ordinary log output
+        run: python tests/traceback_lookalike.py
