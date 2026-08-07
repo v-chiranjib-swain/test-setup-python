@@ -1,7 +1,7 @@
-name: Python problem matcher control
+name: Python problem matcher candidate
 
 # This workflow verifies which Python exceptions are detected and annotated by
-# the problem matcher registered by actions/setup-python.
+# the candidate problem matcher.
 on:
   workflow_dispatch:
 
@@ -29,10 +29,10 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@82009b3bde52ba09eae338d59adb1c06ac50c997
         with:
           python-version: "3.10"
 
