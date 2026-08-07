@@ -1,0 +1,42 @@
+name: Python problem matcher test
+
+# This workflow verifies which Python exceptions are detected and annotated by
+# the problem matcher registered by actions/setup-python.
+on:
+  workflow_dispatch:
+
+jobs:
+  problem-matcher:
+    name: ${{ matrix.testcase }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        testcase:
+          - index_error
+          - key_error
+          - type_error
+          - value_error
+          - zero_division
+          - file_not_found
+          - import_error
+          - module_not_found
+          - attribute_error
+          - runtime_error
+          - assertion_error
+          - custom_exception
+          - syntax_error
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # Replace this reference with a local action or PR branch when needed.
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      # Each failure is expected; inspect its annotation to test the matcher.
+      - name: Run ${{ matrix.testcase }}
+        run: python tests/${{ matrix.testcase }}.py
