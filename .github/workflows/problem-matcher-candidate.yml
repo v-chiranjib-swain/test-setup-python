@@ -23,6 +23,7 @@ jobs:
         with:
           repository: chiranjib-swain/setup-python
           ref: 6f05d76b2ee0dad4076c70077171b67fc0bfeeaa
+          fetch-depth: 2
 
       - name: Validate JSON
         run: |
