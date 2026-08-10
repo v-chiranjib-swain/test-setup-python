@@ -1,0 +1,96 @@
+name: Python problem matcher User PR
+
+# This workflow verifies which Python exceptions are detected and annotated by
+# the candidate problem matcher.
+on:
+  workflow_dispatch:
+    inputs:
+      python-version:
+        description: Python version
+        required: true
+        type: choice
+        options:
+          - "3.10"
+          - "3.14"
+
+jobs:
+  validate-matcher:
+    name: Validate matcher
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out matcher source
+        uses: actions/checkout@v6
+        with:
+          uses: eric-wieser/setup-python@patch-1
+          fetch-depth: 2
+
+      - name: Validate JSON
+        run: |
+          node -e "const matcher = JSON.parse(require('fs').readFileSync('.github/python.json', 'utf8')); if (matcher.problemMatcher.length !== 2) process.exit(1)"
+          git diff --check HEAD^
+
+  problem-matcher:
+    name: Python ${{ inputs.python-version }} - ${{ matrix.testcase }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        testcase:
+          - index_error
+          - key_error
+          - type_error
+          - value_error
+          - zero_division
+          - file_not_found
+          - import_error
+          - module_not_found
+          - attribute_error
+          - runtime_error
+          - assertion_error
+          - custom_exception
+          - syntax_error
+          - nested_error
+          - qualified_error
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: eric-wieser/setup-python@patch-1
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      # Each failure is expected; inspect its annotation to test the matcher.
+      - name: Run ${{ matrix.testcase }}
+        run: python tests/${{ matrix.testcase }}.py
+
+  legacy-output:
+    name: Python 3.10-style output
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: eric-wieser/setup-python@patch-1
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Emit legacy traceback
+        run: python tests/legacy_traceback.py
+
+  false-positive:
+    name: Traceback-shaped log output
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: eric-wieser/setup-python@patch-1
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Emit ordinary log output
+        run: python tests/traceback_lookalike.py
