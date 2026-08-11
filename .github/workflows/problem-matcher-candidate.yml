@@ -52,6 +52,7 @@ jobs:
           - syntax_error
           - nested_error
           - qualified_error
+          - chained_error
 
     steps:
       - name: Check out repository
@@ -95,3 +96,18 @@ jobs:
 
       - name: Emit ordinary log output
         run: python tests/traceback_lookalike.py
+
+  windows-path:
+    name: Windows path
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: chiranjib-swain/setup-python@6f05d76b2ee0dad4076c70077171b67fc0bfeeaa
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Emit Windows traceback
+        run: python tests/windows_path_error.py
