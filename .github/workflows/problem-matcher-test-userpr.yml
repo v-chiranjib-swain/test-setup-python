@@ -51,6 +51,7 @@ jobs:
           - syntax_error
           - nested_error
           - qualified_error
+          - chained_error
 
     steps:
       - name: Check out repository
