@@ -94,3 +94,18 @@ jobs:
 
       - name: Emit ordinary log output
         run: python tests/traceback_lookalike.py
+
+  windows-path:
+    name: Windows path
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: eric-wieser/setup-python@patch-1
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Emit Windows traceback
+        run: python tests/windows_path_error.py
