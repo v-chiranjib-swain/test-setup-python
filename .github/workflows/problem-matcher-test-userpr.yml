@@ -21,12 +21,13 @@ jobs:
       - name: Check out matcher source
         uses: actions/checkout@v6
         with:
-          uses: eric-wieser/setup-python@patch-1
+          repository: eric-wieser/setup-python
+          ref: patch-1
           fetch-depth: 2
 
       - name: Validate JSON
         run: |
-          node -e "const matcher = JSON.parse(require('fs').readFileSync('.github/python.json', 'utf8')); if (matcher.problemMatcher.length !== 2) process.exit(1)"
+          node -e "const matcher = JSON.parse(require('fs').readFileSync('.github/python.json', 'utf8')); if (matcher.problemMatcher.length !== 1) process.exit(1)"
           git diff --check HEAD^
 
   problem-matcher:
