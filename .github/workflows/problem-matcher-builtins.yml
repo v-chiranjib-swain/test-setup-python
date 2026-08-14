@@ -1,0 +1,88 @@
+name: Python built-in exception matcher
+
+on:
+  workflow_dispatch:
+    inputs:
+      python-version:
+        description: Python version
+        required: true
+        type: choice
+        options:
+          - "3.10"
+          - "3.14"
+      batch:
+        description: Exception batch
+        required: true
+        type: choice
+        options:
+          - "a"
+          - "b"
+
+jobs:
+  validate-matcher:
+    name: Validate matcher
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out matcher source
+        uses: actions/checkout@v6
+        with:
+          repository: chiranjib-swain/setup-python
+          ref: 7d4b96b27380874c231b1bff382518ad060ca769
+          fetch-depth: 2
+
+      - name: Validate JSON
+        run: |
+          node -e "const matcher = JSON.parse(require('fs').readFileSync('.github/python.json', 'utf8')); if (matcher.problemMatcher.length !== 2) process.exit(1)"
+          git diff --check HEAD^
+
+  built-in-exception:
+    name: Python ${{ inputs.python-version }} - ${{ matrix.exception }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        exception: ${{ fromJSON(inputs.batch == 'a' && '["ArithmeticError","AssertionError","AttributeError","BaseException","BlockingIOError","BrokenPipeError","BufferError","ChildProcessError","ConnectionAbortedError","ConnectionError","ConnectionRefusedError","ConnectionResetError","EOFError","Exception","FileExistsError","FileNotFoundError","FloatingPointError","GeneratorExit","ImportError","IndentationError","IndexError","InterruptedError","IOError"]' || '["IsADirectoryError","KeyboardInterrupt","KeyError","LookupError","MemoryError","ModuleNotFoundError","NameError","NotADirectoryError","NotImplementedError","OSError","OverflowError","PermissionError","RecursionError","RuntimeError","StopAsyncIteration","StopIteration","SyntaxError","TabError","TimeoutError","TypeError","ValueError","ZeroDivisionError"]') }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: chiranjib-swain/setup-python@7d4b96b27380874c231b1bff382518ad060ca769
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Raise ${{ matrix.exception }}
+        run: python tests/builtin_exception.py ${{ matrix.exception }}
+
+  system-exit-boundary:
+    name: SystemExit boundary
+    if: inputs.batch == 'b'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: chiranjib-swain/setup-python@7d4b96b27380874c231b1bff382518ad060ca769
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Raise SystemExit
+        run: python tests/system_exit.py
+
+  base-exception-group-boundary:
+    name: BaseExceptionGroup boundary
+    if: inputs.batch == 'b' && inputs.python-version != '3.10'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: chiranjib-swain/setup-python@7d4b96b27380874c231b1bff382518ad060ca769
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Raise BaseExceptionGroup
+        run: python tests/base_exception_group.py
