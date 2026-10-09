@@ -6,19 +6,18 @@ on:
 jobs:
   runner-1:
     runs-on: [self-hosted, Linux, X64, setup-python-race-1]
+    env:
+      AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
     steps:
-      - name: Configure writable Python tool cache
-        shell: bash
-        run: |
-          tool_cache="$RUNNER_TEMP/hostedtoolcache"
-          mkdir -p "$tool_cache"
-          echo "AGENT_TOOLSDIRECTORY=$tool_cache" >> "$GITHUB_ENV"
-
-      - name: Inspect cache configuration
+      - name: Check cache directory
         run: |
           echo "Runner: $RUNNER_NAME"
-          echo "RUNNER_TOOL_CACHE=${RUNNER_TOOL_CACHE:-<unset>}"
           echo "AGENT_TOOLSDIRECTORY=$AGENT_TOOLSDIRECTORY"
+          mkdir -p "$AGENT_TOOLSDIRECTORY"
+          test -w "$AGENT_TOOLSDIRECTORY" || {
+            echo "Error: $AGENT_TOOLSDIRECTORY is not writable by the runner user"
+            exit 1
+          }
 
       - name: Install Python
         uses: v-gowridurgad/setup-python@feature-1087
@@ -34,19 +33,18 @@ jobs:
 
   runner-2:
     runs-on: [self-hosted, Linux, X64, setup-python-race-2]
+    env:
+      AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
     steps:
-      - name: Configure writable Python tool cache
-        shell: bash
-        run: |
-          tool_cache="$RUNNER_TEMP/hostedtoolcache"
-          mkdir -p "$tool_cache"
-          echo "AGENT_TOOLSDIRECTORY=$tool_cache" >> "$GITHUB_ENV"
-
-      - name: Inspect cache configuration
+      - name: Check cache directory
         run: |
           echo "Runner: $RUNNER_NAME"
-          echo "RUNNER_TOOL_CACHE=${RUNNER_TOOL_CACHE:-<unset>}"
           echo "AGENT_TOOLSDIRECTORY=$AGENT_TOOLSDIRECTORY"
+          mkdir -p "$AGENT_TOOLSDIRECTORY"
+          test -w "$AGENT_TOOLSDIRECTORY" || {
+            echo "Error: $AGENT_TOOLSDIRECTORY is not writable by the runner user"
+            exit 1
+          }
 
       - name: Install Python
         uses: v-gowridurgad/setup-python@feature-1087
