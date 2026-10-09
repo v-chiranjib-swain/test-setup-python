@@ -1,0 +1,28 @@
+
+name: Runner Tool Cache Check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  runner-1:
+    runs-on: [self-hosted, Linux, X64, setup-python-race-1]
+    steps:
+      - name: Inspect runner environment
+        run: |
+          echo "Runner: $RUNNER_NAME"
+          echo "RUNNER_TOOL_CACHE=${RUNNER_TOOL_CACHE:-<unset>}"
+          echo "AGENT_TOOLSDIRECTORY=${AGENT_TOOLSDIRECTORY:-<unset>}"
+          echo "RUNNER_TEMP=$RUNNER_TEMP"
+          echo "RUNNER_WORKSPACE=$RUNNER_WORKSPACE"
+
+  runner-2:
+    runs-on: [self-hosted, Linux, X64, setup-python-race-2]
+    steps:
+      - name: Inspect runner environment
+        run: |
+          echo "Runner: $RUNNER_NAME"
+          echo "RUNNER_TOOL_CACHE=${RUNNER_TOOL_CACHE:-<unset>}"
+          echo "AGENT_TOOLSDIRECTORY=${AGENT_TOOLSDIRECTORY:-<unset>}"
+          echo "RUNNER_TEMP=$RUNNER_TEMP"
+          echo "RUNNER_WORKSPACE=$RUNNER_WORKSPACE"
