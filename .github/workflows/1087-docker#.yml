@@ -1,3 +1,4 @@
+```yaml
 name: Test OS-Specific Python Caching by Docker
 
 on:
@@ -5,10 +6,11 @@ on:
 
 jobs:
   ubuntu-20-04:
-    runs-on: [self-hosted]
+    runs-on: [self-hosted, Linux, X64, setup-python-race-1]
     container:
       image: ubuntu:20.04
     name: Run inside Ubuntu 20.04 container
+
     steps:
       - name: Install deps
         run: |
@@ -16,43 +18,41 @@ jobs:
           apt-get install -y curl build-essential libssl-dev libffi-dev python3-pip lsb-release
 
       - name: Set up Python 3.8
-        uses: actions/setup-python@v5
+        uses: v-gowridurgad/setup-python@feature-1087
         with:
-          python-version: 3.8
+          python-version: "3.8"
+          scope-cache-by-os: true
 
       - name: Verify Python Version
         run: |
           echo "Python: $(python --version)"
+          python -c "import ssl; print(ssl.OPENSSL_VERSION)"
           echo "OS:"
           cat /etc/os-release
 
   ubuntu-24-04:
     needs: ubuntu-20-04
-    runs-on: [self-hosted]
+    runs-on: [self-hosted, Linux, X64, setup-python-race-1]
     container:
       image: ubuntu:24.04
     name: Run inside Ubuntu 24.04 container
+
     steps:
       - name: Install deps
         run: |
           apt-get update
           apt-get install -y curl build-essential libssl-dev libffi-dev python3-pip lsb-release
-          
+
       - name: Fix pip cache permissions
         run: |
           mkdir -p /github/home/.cache/pip
-          chown -R $(whoami) /github/home/.cache
+          chown -R "$(whoami)" /github/home/.cache
 
       - name: Set up Python 3.8
-        uses: actions/setup-python@v5
+        uses: v-gowridurgad/setup-python@feature-1087
         with:
-          python-version: 3.8
-
-      # - name: Print Python info and OS version
-      #   run: |
-      #     echo "Python location: $(which python)"
-      #     python -c "import ssl; print('SSL available:', hasattr(ssl, 'SSLContext'))"
-      #     lsb_release -a || cat /etc/os-release
+          python-version: "3.8"
+          scope-cache-by-os: true
 
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
@@ -60,5 +60,7 @@ jobs:
       - name: Verify Python Version
         run: |
           echo "Python: $(python --version)"
+          python -c "import ssl; print(ssl.OPENSSL_VERSION)"
           echo "OS:"
           cat /etc/os-release
+```
