@@ -1,0 +1,59 @@
+name: Concurrent Python Cache Test Main
+
+on:
+  workflow_dispatch:
+
+jobs:
+  runner-1:
+    runs-on: [self-hosted, Linux, X64, setup-python-race-1]
+    env:
+      AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
+    steps:
+      - name: Check cache directory
+        run: |
+          echo "Runner: $RUNNER_NAME"
+          echo "AGENT_TOOLSDIRECTORY=$AGENT_TOOLSDIRECTORY"
+          mkdir -p "$AGENT_TOOLSDIRECTORY"
+          test -w "$AGENT_TOOLSDIRECTORY" || {
+            echo "Error: $AGENT_TOOLSDIRECTORY is not writable by the runner user"
+            exit 1
+          }
+
+      - name: Install Python
+        uses: actions/setup-python@main
+        with:
+          python-version: '3.12.6'
+          scope-cache-by-os: true
+
+      - name: Verify Python
+        run: |
+          python --version
+          which python
+          ls -la "$AGENT_TOOLSDIRECTORY/Python/3.12.6" || true
+
+  runner-2:
+    runs-on: [self-hosted, Linux, X64, setup-python-race-2]
+    env:
+      AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
+    steps:
+      - name: Check cache directory
+        run: |
+          echo "Runner: $RUNNER_NAME"
+          echo "AGENT_TOOLSDIRECTORY=$AGENT_TOOLSDIRECTORY"
+          mkdir -p "$AGENT_TOOLSDIRECTORY"
+          test -w "$AGENT_TOOLSDIRECTORY" || {
+            echo "Error: $AGENT_TOOLSDIRECTORY is not writable by the runner user"
+            exit 1
+          }
+
+      - name: Install Python
+        uses: actions/setup-python@main
+        with:
+          python-version: '3.12.6'
+          scope-cache-by-os: true
+
+      - name: Verify Python
+        run: |
+          python --version
+          which python
+          ls -la "$AGENT_TOOLSDIRECTORY/Python/3.12.6" || true
