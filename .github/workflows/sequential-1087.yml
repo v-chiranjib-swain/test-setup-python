@@ -1,0 +1,70 @@
+name: Sequential shared tool-cache test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ubuntu-20:
+    runs-on: [self-hosted, Linux, X64, setup-python-race-1]
+    container:
+      image: ubuntu:20.04
+      options: --volume /opt/hostedtoolcache:/opt/hostedtoolcache
+    env:
+      AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
+    steps:
+      - name: Install SSL prerequisites
+        run: |
+          apt-get update
+          apt-get install -y ca-certificates libssl1.1
+
+      - name: Set up Python 3.12.6
+        uses: v-gowridurgad/setup-python@feature-1087
+        with:
+          python-version: "3.12.6"
+          scope-cache-by-os: true
+
+      - name: Verify Ubuntu 20.04 Python and write shared-cache marker
+        run: |
+          python --version
+          python -c "import ssl; print(ssl.OPENSSL_VERSION)"
+          python -m pip --version
+          test -d "$AGENT_TOOLSDIRECTORY/Python/3.12.6/x64-ubuntu-20.04"
+          printf '%s\n' "written by ubuntu-20 in run $GITHUB_RUN_ID" \
+            > "$AGENT_TOOLSDIRECTORY/.shared-cache-probe-$GITHUB_RUN_ID"
+
+  ubuntu-24:
+    needs: ubuntu-20
+    runs-on: [self-hosted, Linux, X64, setup-python-race-2]
+    container:
+      image: ubuntu:24.04
+      options: --volume /opt/hostedtoolcache:/opt/hostedtoolcache
+    env:
+      AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
+    steps:
+      - name: Verify shared-cache marker
+        run: |
+          test -f "$AGENT_TOOLSDIRECTORY/.shared-cache-probe-$GITHUB_RUN_ID"
+          cat "$AGENT_TOOLSDIRECTORY/.shared-cache-probe-$GITHUB_RUN_ID"
+
+      - name: Install SSL prerequisites
+        run: |
+          apt-get update
+          apt-get install -y ca-certificates libssl3
+
+      - name: Set up Python 3.12.6
+        uses: v-gowridurgad/setup-python@feature-1087
+        with:
+          python-version: "3.12.6"
+          scope-cache-by-os: true
+
+      - name: Verify Ubuntu 24.04 Python and both scoped directories
+        run: |
+          python --version
+          python -c "import ssl; print(ssl.OPENSSL_VERSION)"
+          python -m pip --version
+          test -d "$AGENT_TOOLSDIRECTORY/Python/3.12.6/x64-ubuntu-20.04"
+          test -d "$AGENT_TOOLSDIRECTORY/Python/3.12.6/x64-ubuntu-24.04"
+
+      - name: Remove shared-cache marker
+        if: always()
+        run: rm -f "$AGENT_TOOLSDIRECTORY/.shared-cache-probe-$GITHUB_RUN_ID"
