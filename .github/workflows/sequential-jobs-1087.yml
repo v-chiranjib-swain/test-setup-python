@@ -9,17 +9,51 @@ jobs:
     container: ubuntu:20.04
     env:
       AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
+
     steps:
-      - uses: v-gowridurgad/setup-python@feature-1087
+      - name: Check runner cache configuration
+        run: |
+          echo "AGENT_TOOLSDIRECTORY=$AGENT_TOOLSDIRECTORY"
+          echo "RUNNER_TOOL_CACHE=$RUNNER_TOOL_CACHE"
+          cat /etc/os-release
+
+      - name: Set up Python 3.12.6
+        id: setup-python
+        uses: v-gowridurgad/setup-python@feature-1087
         with:
           python-version: "3.12.6"
           scope-cache-by-os: true
+
+      - name: Diagnose Python SSL
+        if: always()
+        run: |
+          python --version
+          python -c "import sys; print(sys.executable)"
+
+          ssl_ext=$(python -c "import _ssl; print(_ssl.__file__)" 2>/dev/null || true)
+
+          if [ -n "$ssl_ext" ]; then
+            echo "SSL extension: $ssl_ext"
+            python -c "import ssl; print(ssl.OPENSSL_VERSION)"
+            ldd "$ssl_ext" || true
+          else
+            echo "ERROR: Python cannot load the _ssl module"
+            find "$AGENT_TOOLSDIRECTORY/Python/3.12.6" \
+              -name '_ssl*.so' -print 2>/dev/null || true
+          fi
+
+          python -m pip --version || true
 
       - name: Verify Ubuntu 20.04 installation
         run: |
           python --version
           python -c "import sys; print(sys.executable)"
+          python -c "import ssl; print(ssl.OPENSSL_VERSION)"
+          python -m pip --version
+
           test -d "$AGENT_TOOLSDIRECTORY/Python/3.12.6/x64-ubuntu-20.04"
+
+          echo "Ubuntu 20.04 installation verified"
 
   ubuntu-24:
     needs: ubuntu-20
@@ -27,15 +61,49 @@ jobs:
     container: ubuntu:24.04
     env:
       AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
+
     steps:
-      - uses: v-gowridurgad/setup-python@feature-1087
+      - name: Check runner cache configuration
+        run: |
+          echo "AGENT_TOOLSDIRECTORY=$AGENT_TOOLSDIRECTORY"
+          echo "RUNNER_TOOL_CACHE=$RUNNER_TOOL_CACHE"
+          cat /etc/os-release
+
+      - name: Set up Python 3.12.6
+        id: setup-python
+        uses: v-gowridurgad/setup-python@feature-1087
         with:
           python-version: "3.12.6"
           scope-cache-by-os: true
 
-      - name: Verify both installations
+      - name: Diagnose Python SSL
+        if: always()
         run: |
           python --version
           python -c "import sys; print(sys.executable)"
+
+          ssl_ext=$(python -c "import _ssl; print(_ssl.__file__)" 2>/dev/null || true)
+
+          if [ -n "$ssl_ext" ]; then
+            echo "SSL extension: $ssl_ext"
+            python -c "import ssl; print(ssl.OPENSSL_VERSION)"
+            ldd "$ssl_ext" || true
+          else
+            echo "ERROR: Python cannot load the _ssl module"
+            find "$AGENT_TOOLSDIRECTORY/Python/3.12.6" \
+              -name '_ssl*.so' -print 2>/dev/null || true
+          fi
+
+          python -m pip --version || true
+
+      - name: Verify Ubuntu 24.04 installation and both cache directories
+        run: |
+          python --version
+          python -c "import sys; print(sys.executable)"
+          python -c "import ssl; print(ssl.OPENSSL_VERSION)"
+          python -m pip --version
+
           test -d "$AGENT_TOOLSDIRECTORY/Python/3.12.6/x64-ubuntu-20.04"
           test -d "$AGENT_TOOLSDIRECTORY/Python/3.12.6/x64-ubuntu-24.04"
+
+          echo "Both OS-scoped cache directories exist"
