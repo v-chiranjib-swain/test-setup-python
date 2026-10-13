@@ -34,6 +34,23 @@ jobs:
           python-version: "3.12.6"
           scope-cache-by-os: true
 
+      - name: Inspect Python cache paths
+        if: always()
+        run: |
+          echo "OS:"
+          cat /etc/os-release
+
+          echo "AGENT_TOOLSDIRECTORY=$AGENT_TOOLSDIRECTORY"
+          echo "RUNNER_TOOL_CACHE=$RUNNER_TOOL_CACHE"
+
+          echo "Cache directories:"
+          find /opt/hostedtoolcache/Python/3.12.6 \
+            -maxdepth 2 -type d -print 2>/dev/null || true
+
+          echo "Python executable:"
+          command -v python || true
+          python --version || true
+
       - name: Diagnose Python SSL
         if: always()
         run: |
@@ -96,6 +113,23 @@ jobs:
         with:
           python-version: "3.12.6"
           scope-cache-by-os: true
+
+      - name: Inspect Python cache paths
+        if: always()
+        run: |
+          echo "OS:"
+          cat /etc/os-release
+
+          echo "AGENT_TOOLSDIRECTORY=$AGENT_TOOLSDIRECTORY"
+          echo "RUNNER_TOOL_CACHE=$RUNNER_TOOL_CACHE"
+
+          echo "Cache directories:"
+          find /opt/hostedtoolcache/Python/3.12.6 \
+            -maxdepth 2 -type d -print 2>/dev/null || true
+
+          echo "Python executable:"
+          command -v python || true
+          python --version || true
 
       - name: Diagnose Python SSL
         if: always()
