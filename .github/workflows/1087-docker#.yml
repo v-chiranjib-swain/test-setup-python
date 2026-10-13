@@ -1,4 +1,4 @@
-```yaml
+
 name: Test OS-Specific Python Caching by Docker
 
 on:
@@ -63,4 +63,3 @@ jobs:
           python -c "import ssl; print(ssl.OPENSSL_VERSION)"
           echo "OS:"
           cat /etc/os-release
-```
